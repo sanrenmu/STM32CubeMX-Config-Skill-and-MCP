@@ -256,28 +256,23 @@ cubemx1 clock solve --device "STM32F407Z(E-G)Tx" --target HCLKFreq_Value=168
 
 ## 支持范围
 
-外设支持不看名单，看 CubeMX 的器件数据：器件 XML 和 Modes XML 里有的外设，工具就能查、能写，
-引脚、模式、参数、中断、DMA、时钟都是同一套规则。下面这些是已经用 CubeMX 真机加载验证过的代表，
-别的外设照样能写：
+由于采用基于xml解析的开发方案，所有在xml内的IP均可配置编辑。其中以下内容经过测试：
 
-引脚与 GPIO、USART、TIM、SPI、I2C、ADC、DMA、时钟、NVIC、FreeRTOS、USB 设备类、
-用户常量、LWIP / FATFS / USB HOST。
+引脚与 GPIO、USART、TIM、SPI、I2C、ADC、FMC、DMA、时钟、NVIC、FreeRTOS、USB 设备类、
+用户常量、LWIP / FATFS / USB HOST。均测试多个家族的多个芯片
 
 板卡方面，`board` 段可以直接套 ST 官方板卡的 seed，也可以用已经展开的配置；
 `probe board` 能查板卡用的哪颗 MCU、seed 里配了什么、有没有原生 BSP 定义。
+
 板卡带 BSP 时，`ips` 里可以写板级实例和组件参数（比如 `LD1`、`VCP`、`BUTTON`），
 这些组件由 CubeMX 加载时展开成 MCU 配置。
 
-还没做的，现在会明确报错，不会悄悄忽略（coming soon）：
+## Coming Soon：
 
 - 双核 / TrustZone / 内存映射
 - X-CUBE 扩展包
 - 基于 BSP 的自定义板卡信息注册
 - 基于 BSP 的自定义驱动外部模块（外设与代码初始化）
-
-F1/F4/H7/C0 做过原生加载验收，L4 只验了一部分；四个家族的时钟目标都覆盖（C0 没有 PLL，走纯分频；
-H5/H7 支持小数 PLL）；时钟拓扑查询是只读的，有时钟定义的器件都能查。工具链只验过 CMake。
-发布路径不做对拍，正确性靠规则和 CI 门禁。
 
 ## 许可
 
