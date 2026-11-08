@@ -1,0 +1,96 @@
+{
+  "name": "cubemx1",
+  "title": "STM32CubeMX 1.x 离线 IOC 编译器（MCP）",
+  "version": "1.0.0",
+  "description": "把一份描述目标配置的 JSON 离线编译成 STM32CubeMX 能直接加载的 .ioc；本清单描述把它作为 MCP 服务注册时要用的启动方式、依赖与工具面。",
+  "protocolVersion": "2024-11-05",
+  "capabilities": {
+    "tools": true,
+    "resources": true,
+    "comment": "initialize 返回 capabilities.tools + capabilities.resources，并带 instructions（最短使用路径）。"
+  },
+  "resources": [
+    {
+      "uri": "cubemx1://protocol/target",
+      "name": "目标 JSON 协议",
+      "description": "cubemx1_ioc_build 编译的目标 JSON 完整契约：各段字段、/1 与 /2 的差别、错误 kind。",
+      "mimeType": "text/markdown",
+      "path": "docs/PROTOCOL.md"
+    },
+    {
+      "uri": "cubemx1://protocol/mcp",
+      "name": "MCP 传输与工具契约",
+      "description": "宿主怎么跟本服务说话（stdio JSON-RPC、方法、失败语义）与每个工具承诺什么。",
+      "mimeType": "text/markdown",
+      "path": "mcp/PROTOCOL.md"
+    }
+  ],
+  "mcpServers": {
+    "cubemx1": {
+      "command": "python",
+      "args": ["<包根>/mcp/mcp_server.py"],
+      "cwd": "<包根>",
+      "comment": "标准客户端注册块：把 <包根> 换成解包后的绝对路径，原样粘进客户端的 mcpServers 配置。"
+    }
+  },
+  "transport": {
+    "type": "stdio",
+    "comment": "每行一条 JSON-RPC 消息；stdout 只放协议消息，日志走 stderr。",
+    "launch": {
+      "command": "python",
+      "args": [
+        "<包根>/mcp/mcp_server.py"
+      ],
+      "cwd": "<包根>",
+      "comment": "<包根> 指解包后 cubemx1-<版本>/ 的绝对路径。只用标准库，不需要 pip 装任何东西。"
+    }
+  },
+  "requirements": {
+    "python": ">=3.8（只用标准库）",
+    "stm32cubemx": "本机已安装 STM32CubeMX 1.x（自带 JRE 的那一版）；build 读取安装目录中的 DB 数据但不启动 CubeMX，check / generate 需要启动 CubeMX",
+    "machine_config": {
+      "path": "~/.cubemx1/machine.json",
+      "env_override": "CUBEMX1_MACHINE",
+      "required_keys": [
+        "cubemx_home"
+      ],
+      "optional_keys": [
+        "repository",
+        "firmware_packages"
+      ],
+      "comment": "一台电脑一份，放在包外面。缺了会直接报该填什么。"
+    },
+    "firmware_packages": "生成代码时才需要：对应家族的固件包要先下到本机。"
+  },
+  "tools": [
+    {
+      "name": "cubemx1_ioc_build",
+      "summary": "目标 JSON -> .ioc（离线编译，不启动 CubeMX；写入口只有这一条）"
+    },
+    {
+      "name": "cubemx1_ioc_check",
+      "summary": "开发/验收用对拍：加载 + 另存 + 比键值（发布使用不需要；不是必需步骤）"
+    },
+    {
+      "name": "cubemx1_ioc_generate",
+      "summary": "原生生成 CMake 工程并检查产物（启动文件/工程引用/关键值）"
+    },
+    {
+      "name": "cubemx1_ioc_import",
+      "summary": "把 .ioc 反解成高级目标 JSON（cubemx1.ioc/2）；未理解键进 extensions 并逐条报告"
+    },
+    {
+      "name": "cubemx1_probe_describe",
+      "summary": "离线查询：IP 定义与适用定义（三值条件）、引脚候选；kind=boards/board 时查 ST 板卡"
+    },
+    {
+      "name": "cubemx1_status",
+      "summary": "看后台进程与会话状态（只有 check/generate 需要会话）"
+    }
+  ],
+  "notes": [
+    "本服务是**薄外壳**：没有业务逻辑，每个工具就是「接参数 → 交给内核 → 结果转 JSON」。",
+    "配置的“目标状态”写在 build 的 JSON 里，不再走命令序列；旧的 apply/query/save 已下线；发布路径不做对拍。",
+    "发布包里不含任何本机绝对路径、不含开发物料与实测数据；发布检查会逐条卡住。"
+  ]
+}
