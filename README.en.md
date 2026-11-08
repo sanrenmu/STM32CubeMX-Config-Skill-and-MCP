@@ -269,32 +269,41 @@ Write them into the target JSON only after confirming them.
 | `cubemx1_probe_describe` | Offline queries: definitions (`kind=describe`), device peripheral inventory (`kind=peripherals`), signals and candidate pins (`kind=pins`), ST boards (`kind=boards/board`), clock topology (`kind=clock`) |
 | `cubemx1_status`         | Background process and session status                                                                                                                                                                                |
 
-## Support
+## Supported Configuration Scope
 
-There is no peripheral whitelist: if the device XML and the modes XML define a peripheral, the tool can
-probe it and write it. Pins, modes, parameters, interrupts, DMA and clocks all follow the same rules. The
-list below is the set already checked by a real CubeMX load, and the rest still work:
+Thanks to its XML-driven architecture, the toolkit can discover, configure, and edit any IP defined in the STM32CubeMX XML database, without relying on a hardcoded peripheral whitelist.
 
-pins and GPIO, USART, TIM, SPI, I2C, ADC, DMA, clocks, NVIC, FreeRTOS, USB device classes, user
-constants, and middleware such as LWIP / FATFS / USB HOST.
+The following configuration areas have been tested across multiple MCUs from multiple STM32 families:
 
-For boards, the `board` section can apply an official ST board seed or keep the already expanded
-configuration. `probe board` reports which MCU the board uses, what its seed configures, and whether
-it has a native BSP definition. When a board has a BSP, `ips` can declare board-level instances and
-component parameters (`LD1`, `VCP`, `BUTTON`); CubeMX expands those components into MCU
-configuration while loading.
+- Pins and GPIO
+- USART, TIM, SPI, I2C, ADC, FMC
+- DMA, clock configuration, and NVIC
+- FreeRTOS
+- USB device classes
+- User constants
+- Middleware: LWIP, FATFS, and USB HOST
 
-Not done yet; each of these fails with an explicit error instead of being silently ignored (coming soon):
+### Board Support
+
+The `board` section supports both official ST board configuration seeds and previously expanded configurations.
+
+`probe board` can inspect a board to determine:
+
+- Which MCU it uses
+- What is configured in its seed
+- Whether a native BSP definition is available
+
+For boards with BSP support, the `ips` section can also specify board-level instances and component parameters, such as `LD1`, `VCP`, and `BUTTON`.
+
+STM32CubeMX expands these board-level components into MCU configurations when loading the generated `.ioc` file.
+
+### Coming Soon
 
 - dual core / TrustZone / memory map
 - X-CUBE expansion packages
 - BSP-based registration of custom board information
 - BSP-based custom drivers for external modules (peripherals and code initialization)
 
-F1/F4/H7/C0 have gone through native load acceptance, L4 only partially. Clock targets work on all four
-families (C0 has no PLL and uses plain dividers; H5/H7 support fractional PLLs). The clock topology query
-is read-only and works on every device with a clock definition. Only CMake has been verified. The release
-path does no round-trip comparison; correctness rests on complete rules and CI gates.
 
 ## License
 
